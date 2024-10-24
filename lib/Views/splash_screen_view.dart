@@ -50,7 +50,6 @@ class _SplashScreenViewState extends State<SplashScreenView> {
               width: 150, // Atur ukuran gambar sesuai kebutuhan
               height: 150,
             ),
-            SizedBox(height: 20),
             // Nama aplikasi
             Text(
               'LeafScan',

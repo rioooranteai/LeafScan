@@ -46,7 +46,11 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>your usage description here</string>
+	<string>We need camera access to take pictures for disease detection.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to select pictures for disease detection.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need access to save cropped pictures to your photo library.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>your usage description here</string>
 </dict>
