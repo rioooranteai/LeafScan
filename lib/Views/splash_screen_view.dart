@@ -1,11 +1,16 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leafscan/controllers/deteksi_controller.dart';
 import 'deteksi_penyakit_view.dart'; // Import halaman utama
 
 class SplashScreenView extends StatefulWidget {
+  final List<CameraDescription> cameras; // Tambahkan parameter cameras
+
+  SplashScreenView({required this.cameras}); // Update constructor
+
   @override
   _SplashScreenViewState createState() => _SplashScreenViewState();
 }
@@ -24,6 +29,7 @@ class _SplashScreenViewState extends State<SplashScreenView> {
         MaterialPageRoute(
             builder: (context) => DeteksiPenyakitView(
                   controller: _deteksiController,
+                  cameras: widget.cameras,
                 )),
       );
     });

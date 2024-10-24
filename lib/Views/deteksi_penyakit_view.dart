@@ -1,75 +1,63 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, prefer_final_fields, unused_field
 
-import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
 import '../controllers/deteksi_controller.dart';
 
 class DeteksiPenyakitView extends StatefulWidget {
   final DeteksiController controller;
+  final List<CameraDescription> cameras; // Add cameras parameter
 
-  DeteksiPenyakitView({Key? key, required this.controller}) : super(key: key);
+  DeteksiPenyakitView(
+      {Key? key, required this.controller, required this.cameras})
+      : super(key: key);
 
   @override
   _DeteksiPenyakitViewState createState() => _DeteksiPenyakitViewState();
 }
 
 class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
-  CameraController? _cameraController;
-  List<CameraDescription>? cameras;
-  bool isCameraInitialized = false;
-  String? imagePath;
+  late CameraController _controller;
+  bool _isCameraInitialized = false;
 
   @override
   void initState() {
-    super.initState();
     initCamera();
+    super.initState();
   }
 
-  Future<void> initCamera() async {
-    cameras = await availableCameras();
-    if (cameras != null && cameras!.isNotEmpty) {
-      _cameraController = CameraController(
-        cameras![0],
-        ResolutionPreset.high,
-      );
-
-      _cameraController!.initialize().then((_) {
-        if (!mounted) {
-          return;
-        }
-        setState(() {
-          isCameraInitialized = true;
-        });
-      });
+  initCamera() async {
+    _controller = CameraController(widget.cameras[0], ResolutionPreset.max);
+    try {
+      await _controller.initialize();
+    } catch (e) {
+      print('Camera Error: $e');
     }
-  }
-
-  Future<void> captureImage() async {
-    if (_cameraController != null && _cameraController!.value.isInitialized) {
-      final image = await _cameraController!.takePicture();
-      setState(() {
-        imagePath = image.path;
-      });
-      // Send the image to the controller for detection
-      widget.controller.deteksiPenyakit(imagePath!);
+    if (!mounted) {
+      return;
     }
+    setState(() {
+      _isCameraInitialized = true;
+    });
   }
 
   @override
   void dispose() {
-    _cameraController?.dispose();
+    _controller.dispose();
     super.dispose();
   }
+
+  Future<void> captureImage() async {}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          if (isCameraInitialized)
-            CameraPreview(_cameraController!)
-          else
-            Center(child: CircularProgressIndicator()),
+          // Jika kamera telah diinisialisasi, tampilkan CameraPreview
+          Positioned.fill(
+            child: CameraPreview(_controller),
+          ), // Tampilkan loader saat kamera belum siap
           Positioned(
             bottom: 30,
             left: 0,
