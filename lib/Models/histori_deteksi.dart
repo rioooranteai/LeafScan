@@ -19,7 +19,7 @@ class HistoriDeteksi {
       required this.terakhirDiAkses});
 
   // Method untuk menampilkan informasi detail
-  String tampilkanRincianRekomendasi() {
-    return '';
-  }
+  // String tampilkanRincianRekomendasi() {
+  //   return '';
+  // }
 }

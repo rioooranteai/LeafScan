@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:leafscan/Views/riwayat_deteksi_view.dart';
 import '../controllers/deteksi_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -411,6 +412,10 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
               icon: Icon(Icons.history, color: Colors.white, size: 30),
               onPressed: () {
                 // Aksi untuk membuka histori deteksi
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RiwayatDeteksiView()),
+                );
               },
             ),
           ),
