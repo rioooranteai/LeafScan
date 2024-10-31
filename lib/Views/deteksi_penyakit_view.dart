@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:leafscan/Views/rekomendasi_view.dart';
 import 'package:leafscan/Views/riwayat_deteksi_view.dart';
 import '../controllers/deteksi_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -73,107 +74,176 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
                 height: 2,
               ),
               SizedBox(height: 15),
-              // Text(
-              //   'Daun Sehat',
-              //   style: TextStyle(
-              //     color: Colors.white,
-              //     fontWeight: FontWeight.bold,
-              //     fontSize: 20,
-              //   ),
-              // ),
-              // Text(
-              //   'Tidak terdeteksi adanya penyakit pada daun ini.',
-              //   style: TextStyle(
-              //     color: Colors.white,
-              //     fontSize: 16,
-              //   ),
-              // ),
-              Text(
-                'Penyakit Utama',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
+              if (_isHealthy) ...[
+                // Display healthy status
+                Text(
+                  'Daun Sehat',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
                 ),
-              ),
-              ListTile(
-                leading: Transform.rotate(
-                  angle: 0,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(5.0),
-                    child: SizedBox(
-                      width: 100, // lebar gambar
-                      height: 100, // tinggi gambar
-                      child: Image.asset(
-                        'assets/images/blight.png',
-                        fit: BoxFit.cover, // agar gambar pas di dalam kotak
+                Text(
+                  'Tidak terdeteksi adanya penyakit pada daun ini.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ] else ...[
+                // Display main disease information
+                Text(
+                  'Penyakit Utama',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                // Similar diseases list
+                ListTile(
+                  leading: Transform.rotate(
+                    angle: 0,
+                    child: Container(
+                      width: 100, // width of the image
+                      height: 100, // height of the image
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                            5.0), // Rounded corners for the border
+                        border: Border.all(
+                          color: Colors.white, // Border color
+                          width: 2.0, // Border width
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                            5.0), // Match the border radius
+                        child: Image.asset(
+                          'assets/images/blight.png',
+                          fit: BoxFit.cover, // fit image in the box
+                        ),
                       ),
                     ),
                   ),
-                ), // Gambar Similar 1
-                title: Text('Hawar Daun',
+                  title: Text(
+                    'Hawar Daun',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                    )),
-                subtitle: Text('Exserohilum turcicum',
-                    style: TextStyle(color: Colors.white)),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Lainnya',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Exserohilium turcicium',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RekomendasiView(),
+                      ),
+                    );
+                  },
                 ),
-              ),
-              ListTile(
-                leading: Transform.rotate(
-                  angle: 0,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(5.0),
-                    child: SizedBox(
-                      width: 100, // lebar gambar
-                      height: 100, // tinggi gambar
-                      child: Image.asset(
-                        'assets/images/gray.png',
-                        fit: BoxFit.cover, // agar gambar pas di dalam kotak
+                SizedBox(height: 10),
+                Text(
+                  'Lainnya',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                ListTile(
+                  leading: Transform.rotate(
+                    angle: 0,
+                    child: Container(
+                      width: 100, // width of the image
+                      height: 100, // height of the image
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                            5.0), // Rounded corners for the border
+                        border: Border.all(
+                          color: Colors.white, // Border color
+                          width: 2.0, // Border width
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                            5.0), // Match the border radius
+                        child: Image.asset(
+                          'assets/images/gray.png',
+                          fit: BoxFit.cover, // fit image in the box
+                        ),
                       ),
                     ),
                   ),
-                ),
-                title: Text('Bercak Daun',
+                  title: Text(
+                    'Bercak Daun',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                    )),
-                subtitle: Text('Bipolaris maydis',
-                    style: TextStyle(color: Colors.white)),
-              ),
-              ListTile(
-                leading: Transform.rotate(
-                  angle: 0,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(5.0),
-                    child: SizedBox(
-                      width: 100, // lebar gambar
-                      height: 100, // tinggi gambar
-                      child: Image.asset(
-                        'assets/images/rust.png',
-                        fit: BoxFit.cover, // agar gambar pas di dalam kotak
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Bipolaris maydis',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RekomendasiView(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Transform.rotate(
+                    angle: 0,
+                    child: Container(
+                      width: 100, // width of the image
+                      height: 100, // height of the image
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                            5.0), // Rounded corners for the border
+                        border: Border.all(
+                          color: Colors.white, // Border color
+                          width: 2.0, // Border width
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                            5.0), // Match the border radius
+                        child: Image.asset(
+                          'assets/images/rust.png',
+                          fit: BoxFit.cover, // fit image in the box
+                        ),
                       ),
                     ),
                   ),
-                ), // Gambar Similar 2
-                title: Text('Karat Daun',
+                  title: Text(
+                    'Karat Daun',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                    )),
-                subtitle: Text('Puccinia sorghi',
-                    style: TextStyle(color: Colors.white)),
-              ),
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Puccinia sorghi',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RekomendasiView(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ],
           ),
         );
@@ -194,7 +264,8 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
     setState(() {
       _isLoading = false; // Menyembunyikan loading setelah proses selesai
       _isImageDetected = true;
-      _isNonLeafDetected = true;
+      // _isHealthy = true;
+      // _isNonLeafDetected = true;
     });
 
     if (!_isNonLeafDetected) {
@@ -357,10 +428,37 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
           Center(
             child: _isImageDetected
                 ? (_isHealthy
-                    ? Image.file(
-                        imageLeaf!, // Menampilkan gambar hasil deteksi (daun sehat)
-                        width: MediaQuery.of(context).size.width,
-                        fit: BoxFit.contain,
+                    ? Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 10.0), // Add margin as needed
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                              20.0), // Set the desired corner radius
+                          border: Border.all(
+                            color: Colors.white, // Border color (optional)
+                            width: 3, // Border width (optional)
+                          ),
+                          boxShadow: [
+                            // Optional shadow for better visibility
+                            BoxShadow(
+                              color:
+                                  Colors.black.withOpacity(0.2), // Shadow color
+                              spreadRadius: 2, // Spread radius
+                              blurRadius: 5, // Blur radius
+                              offset: Offset(0, 3), // Offset for shadow
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          // Use ClipRRect for rounded corners
+                          borderRadius: BorderRadius.circular(
+                              20.0), // Set the same radius as above
+                          child: Image.file(
+                            imageLeaf!, // Replace with the actual asset path
+                            width: 350, // Set the width of the image
+                            fit: BoxFit.contain, // Adjust the fit as needed
+                          ),
+                        ),
                       )
                     : (_isNonLeafDetected
                         ? Image.asset(
@@ -368,16 +466,70 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
                             width: 200,
                             fit: BoxFit.contain,
                           )
-                        : Image.asset(
-                            'assets/images/multiple_disease.png', // Gambar jika ada penyakit
-                            width: MediaQuery.of(context).size.width,
-                            fit: BoxFit.contain,
+                        : Container(
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 10.0), // Add margin as needed
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                  20.0), // Set the desired corner radius
+                              border: Border.all(
+                                color: Colors.white, // Border color (optional)
+                                width: 3, // Border width (optional)
+                              ),
+                              boxShadow: [
+                                // Optional shadow for better visibility
+                                BoxShadow(
+                                  color: Colors.black
+                                      .withOpacity(0.2), // Shadow color
+                                  spreadRadius: 2, // Spread radius
+                                  blurRadius: 5, // Blur radius
+                                  offset: Offset(0, 3), // Offset for shadow
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              // Use ClipRRect for rounded corners
+                              borderRadius: BorderRadius.circular(
+                                  20.0), // Set the same radius as above
+                              child: Image.asset(
+                                'assets/images/multiple_disease.png', // Replace with the actual asset path
+                                width: 350, // Set the width of the image
+                                fit: BoxFit.contain, // Adjust the fit as needed
+                              ),
+                            ),
                           )))
                 : (_isImageCropped && imageLeaf != null
-                    ? Image.file(
-                        imageLeaf!, // Menampilkan gambar yang sudah di-crop
-                        width: MediaQuery.of(context).size.width,
-                        fit: BoxFit.contain,
+                    ? Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 10.0), // Add margin as needed
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                              20.0), // Set the desired corner radius
+                          border: Border.all(
+                            color: Colors.white, // Border color (optional)
+                            width: 3, // Border width (optional)
+                          ),
+                          boxShadow: [
+                            // Optional shadow for better visibility
+                            BoxShadow(
+                              color:
+                                  Colors.black.withOpacity(0.2), // Shadow color
+                              spreadRadius: 2, // Spread radius
+                              blurRadius: 5, // Blur radius
+                              offset: Offset(0, 3), // Offset for shadow
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          // Use ClipRRect for rounded corners
+                          borderRadius: BorderRadius.circular(
+                              20.0), // Set the same radius as above
+                          child: Image.file(
+                            imageLeaf!, // Replace with the actual asset path
+                            width: 350, // Set the width of the image
+                            fit: BoxFit.contain, // Adjust the fit as needed
+                          ),
+                        ),
                       )
                     : Image.asset(
                         'assets/images/scan.png', // Gambar default jika belum ada gambar
@@ -431,6 +583,8 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
                     _isImageCropped = false;
                     imageLeaf = null; // Hapus gambar yang sudah di-crop
                     _isImageDetected = false;
+                    _isHealthy = false;
+                    _isNonLeafDetected = false;
                   });
                 },
               ),

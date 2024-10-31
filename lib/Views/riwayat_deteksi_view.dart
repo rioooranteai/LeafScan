@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:leafscan/Views/rekomendasi_view.dart';
 
 class RiwayatDeteksiView extends StatelessWidget {
   @override
@@ -48,20 +49,28 @@ class RiwayatDeteksiView extends StatelessWidget {
             ),
             // Positioned ListView
             Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  return HistoryCard(
-                    imageUrl:
-                        'assets/images/multiple_disease.png', // Change this to the correct path
+                child: ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: 4,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RekomendasiView(),
+                      ),
+                    );
+                  },
+                  child: HistoryCard(
+                    imageUrl: 'assets/images/multiple_disease.png',
                     diseaseName: 'Bercak Cokelat pada Jagung',
                     diseaseType: 'Physoderma maydis',
                     detectedDate: 'Tanggal Deteksi 26/09/2024',
-                  );
-                },
-              ),
-            ),
+                  ),
+                );
+              },
+            )),
           ],
         ),
       ),
