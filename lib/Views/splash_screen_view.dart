@@ -3,8 +3,9 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:leafscan/controllers/deteksi_controller.dart';
-import 'deteksi_penyakit_view.dart'; // Import halaman utama
+import 'package:leafscan/Views/login_view.dart';
+// import 'package:leafscan/controllers/deteksi_controller.dart';
+// import 'deteksi_penyakit_view.dart'; // Import halaman utama
 
 class SplashScreenView extends StatefulWidget {
   final List<CameraDescription> cameras; // Tambahkan parameter cameras
@@ -16,8 +17,6 @@ class SplashScreenView extends StatefulWidget {
 }
 
 class _SplashScreenViewState extends State<SplashScreenView> {
-  final DeteksiController _deteksiController = DeteksiController();
-
   @override
   void initState() {
     super.initState();
@@ -27,8 +26,7 @@ class _SplashScreenViewState extends State<SplashScreenView> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-            builder: (context) => DeteksiPenyakitView(
-                  controller: _deteksiController,
+            builder: (context) => LoginView(
                   cameras: widget.cameras,
                 )),
       );
@@ -47,17 +45,20 @@ class _SplashScreenViewState extends State<SplashScreenView> {
             // Gambar logo
             Image.asset(
               'assets/images/logo_leafscan.png', // Ganti dengan path gambar logo kamu
-              width: 150, // Atur ukuran gambar sesuai kebutuhan
-              height: 150,
+              width: 250, // Atur ukuran gambar sesuai kebutuhan
+              height: 250,
+            ),
+            SizedBox(
+              height: 20,
             ),
             // Nama aplikasi
             Text(
               'LeafScan',
               style: GoogleFonts.alfaSlabOne(
                 textStyle: TextStyle(
-                  fontSize: 30,
+                  fontSize: 35,
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 75, 196, 79),
+                  color: Color.fromARGB(255, 52, 121, 40),
                   letterSpacing: 2.0,
                 ),
               ),
