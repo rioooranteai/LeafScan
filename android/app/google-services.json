@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "241445265345",
+    "project_id": "leafscan-69643",
+    "storage_bucket": "leafscan-69643.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:241445265345:android:47e623586c50e928765940",
+        "android_client_info": {
+          "package_name": "com.example.leafscan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAF0fbMLThlTlGS9FovR3V-N3sevnHrgjU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

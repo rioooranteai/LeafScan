@@ -4,6 +4,9 @@ import 'dart:ui';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:leafscan/Service/auth.dart';
+import 'package:leafscan/Views/login_view.dart';
 import 'package:leafscan/Views/rekomendasi_view.dart';
 import 'package:leafscan/Views/riwayat_deteksi_view.dart';
 import '../controllers/deteksi_controller.dart';
@@ -13,11 +16,10 @@ import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
 
 class DeteksiPenyakitView extends StatefulWidget {
-  final DeteksiController controller;
+  final DeteksiController? deteksiController;
   final List<CameraDescription> cameras; // Add cameras parameter
 
-  DeteksiPenyakitView(
-      {Key? key, required this.controller, required this.cameras})
+  DeteksiPenyakitView({Key? key, this.deteksiController, required this.cameras})
       : super(key: key);
 
   @override
@@ -559,7 +561,7 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
           // Icon untuk histori deteksi di kanan atas
           Positioned(
             top: 60,
-            right: 20,
+            left: 20,
             child: IconButton(
               icon: Icon(Icons.history, color: Colors.white, size: 30),
               onPressed: () {
@@ -567,6 +569,74 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => RiwayatDeteksiView()),
+                );
+              },
+            ),
+          ),
+          // Icon for logout on the top right
+          Positioned(
+            top: 60,
+            right: 20,
+            child: IconButton(
+              icon: Icon(Icons.logout, color: Colors.white, size: 30),
+              onPressed: () async {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      backgroundColor: Color.fromARGB(255, 52, 121, 40),
+                      title: Text(
+                        'Konfirmasi Logout',
+                        style: TextStyle(
+                            fontSize: 20, // Font size for title
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                      content: Text(
+                        'Apakah Anda yakin ingin logout?',
+                        style: TextStyle(
+                            fontSize: 16, // Font size for content
+                            color: Colors.white),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            // Close the dialog
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'Tidak',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16, // Font size for "Tidak" button
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            // Confirm logout, sign out, and navigate to LoginView
+                            Navigator.of(context)
+                                .pop(); // Close the dialog first
+                            await Auth().signOut();
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      LoginView(cameras: widget.cameras)),
+                            );
+                          },
+                          child: Text(
+                            'Ya',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16, // Font size for "Ya" button
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
             ),

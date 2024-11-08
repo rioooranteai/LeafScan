@@ -1,9 +1,9 @@
-// ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, use_key_in_widget_constructors, prefer_const_constructors_in_immutables
+// ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, use_build_context_synchronously
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:leafscan/controllers/deteksi_controller.dart';
+import 'package:leafscan/Service/auth.dart';
 import 'package:leafscan/Views/deteksi_penyakit_view.dart';
 import 'package:leafscan/Views/register_view.dart';
 
@@ -17,47 +17,54 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final DeteksiController _deteksiController = DeteksiController();
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _login() {
-    // final username = _usernameController.text;
-    // final password = _passwordController.text;
+  void _login() async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final auth = Auth();
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DeteksiPenyakitView(
-          controller: _deteksiController,
-          cameras: widget.cameras,
+    if (email.isNotEmpty && password.isNotEmpty) {
+      try {
+        await auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
+        // Navigate to the DeteksiPenyakitView after successful login
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DeteksiPenyakitView(
+              cameras: widget.cameras,
+            ),
+          ),
+          (Route<dynamic> route) => false,
+        );
+      } catch (e) {
+        // Show an error message if sign-in fails
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login gagal: ${e.toString()}'),
+            backgroundColor: Color.fromARGB(255, 255, 0, 0),
+          ),
+        );
+      }
+    } else {
+      // Show error if username or password is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Username dan Password tidak boleh kosong!'),
+          backgroundColor: Color.fromARGB(255, 52, 121, 40),
         ),
-      ),
-    );
-
-    // if (username.isNotEmpty && password.isNotEmpty) {
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (context) => DeteksiPenyakitView(
-    //         controller: _deteksiController,
-    //         cameras: widget.cameras!,
-    //       ),
-    //     ),
-    //   );
-    // } else {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       content: Text('Username dan Password tidak boleh kosong!'),
-    //       backgroundColor: Color.fromARGB(255, 52, 121, 40),
-    //     ),
-    //   );
-    // }
+      );
+    }
   }
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -108,9 +115,9 @@ class _LoginViewState extends State<LoginView> {
               SizedBox(height: 20),
               // Input username
               TextField(
-                controller: _usernameController,
+                controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Username',
+                  labelText: 'Email',
                   labelStyle: TextStyle(color: Colors.black),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),

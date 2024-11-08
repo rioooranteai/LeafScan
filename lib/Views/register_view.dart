@@ -1,8 +1,9 @@
-// ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, use_key_in_widget_constructors, prefer_const_constructors_in_immutables
+// ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, use_build_context_synchronously
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:leafscan/Service/auth.dart';
 import 'package:leafscan/Views/login_view.dart';
 
 class RegisterView extends StatefulWidget {
@@ -15,47 +16,55 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final Auth _auth = Auth();
 
-  void _register() {
-    // final username = _usernameController.text;
-    // final password = _passwordController.text;
+  Future<void> _register() async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-          builder: (context) => LoginView(
-                cameras: widget.cameras,
-              )),
-    );
+    if (email.isNotEmpty && password.isNotEmpty) {
+      try {
+        await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-    // if (username.isNotEmpty && password.isNotEmpty) {
-    //   // Simulate account creation and navigate back to login screen
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       content: Text('Akun berhasil dibuat! Silakan login.'),
-    //       backgroundColor: Color.fromARGB(255, 52, 121, 40),
-    //     ),
-    //   );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Akun berhasil dibuat! Silakan login!'),
+            backgroundColor: Color.fromARGB(255, 52, 121, 40),
+          ),
+        );
 
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => LoginView()),
-    //   );
-    // } else {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       content: Text('Username dan Password tidak boleh kosong!'),
-    //       backgroundColor: Color.fromARGB(255, 52, 121, 40),
-    //     ),
-    //   );
-    // }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginView(cameras: widget.cameras),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal membuat akun: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Username dan Password tidak boleh kosong!'),
+          backgroundColor: Color.fromARGB(255, 52, 121, 40),
+        ),
+      );
+    }
   }
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -106,9 +115,9 @@ class _RegisterViewState extends State<RegisterView> {
               SizedBox(height: 20),
               // Input username
               TextField(
-                controller: _usernameController,
+                controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Username',
+                  labelText: 'Email',
                   labelStyle: TextStyle(color: Colors.black),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
