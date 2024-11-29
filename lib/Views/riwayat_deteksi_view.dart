@@ -1,10 +1,69 @@
-// ignore_for_file: prefer_const_constructors, use_super_parameters
+// ignore_for_file: prefer_const_constructors, use_super_parameters, unnecessary_brace_in_string_interps
+
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:leafscan/Views/rekomendasi_view.dart';
 
-class RiwayatDeteksiView extends StatelessWidget {
+class RiwayatDeteksiView extends StatefulWidget {
+  @override
+  _RiwayatDeteksiViewState createState() => _RiwayatDeteksiViewState();
+}
+
+class _RiwayatDeteksiViewState extends State<RiwayatDeteksiView> {
+  List<Map<String, dynamic>> diseases = [];
+  bool isLoading = true;
+
+  Map<String, String> latinNames = {
+    'blight': 'Exserohilium turcicium',
+    'gray': 'Bipolaris maydis',
+    'rust': 'Puccinia sorghi',
+  };
+
+  Map<String, String> indonesian = {
+    'blight': 'Hawar Daun',
+    'gray': 'Bercak Daun',
+    'rust': 'Karat Daun',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDiseases();
+  }
+
+  Future<void> fetchDiseases() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userEmail = user.email!.replaceAll('.', '_');
+      DatabaseReference ref = FirebaseDatabase.instance
+          .ref()
+          .child('users')
+          .child(userEmail)
+          .child('diseases');
+
+      final snapshot = await ref.get();
+      if (snapshot.exists) {
+        List<Map<String, dynamic>> fetchedDiseases = [];
+        snapshot.children.forEach((disease) {
+          fetchedDiseases.add(Map<String, dynamic>.from(disease.value as Map));
+        });
+        setState(() {
+          diseases = fetchedDiseases;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,59 +77,74 @@ class RiwayatDeteksiView extends StatelessWidget {
             Container(
               color: Color.fromARGB(255, 52, 121, 40),
               height: 60,
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back,
-                            color: Colors.white, size: 30),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      Text(
-                        'History',
-                        style: GoogleFonts.alfaSlabOne(
-                          textStyle: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 2.0,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 40), // Placeholder for alignment
-                    ],
+                  IconButton(
+                    icon: Icon(Icons.arrow_back, color: Colors.white, size: 30),
+                    onPressed: () => Navigator.pop(context),
                   ),
+                  Text(
+                    'History',
+                    style: GoogleFonts.alfaSlabOne(
+                      textStyle: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2.0,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 40), // Placeholder for alignment
                 ],
               ),
             ),
-            // Positioned ListView
+            // ListView
             Expanded(
-                child: ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RekomendasiView(),
-                      ),
-                    );
-                  },
-                  child: HistoryCard(
-                    imageUrl: 'assets/images/multiple_disease.png',
-                    diseaseName: 'Bercak Cokelat pada Jagung',
-                    diseaseType: 'Physoderma maydis',
-                    detectedDate: 'Tanggal Deteksi 26/09/2024',
-                  ),
-                );
-              },
-            )),
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : diseases.isEmpty
+                      ? Center(
+                          child: Text(
+                            'Tidak ada riwayat deteksi.',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.zero,
+                          itemCount: diseases.length,
+                          itemBuilder: (context, index) {
+                            var disease = diseases[index];
+                            DateTime parsedDate =
+                                DateTime.parse(disease['timestamp']);
+                            String formattedDate =
+                                '${parsedDate.day}/${parsedDate.month}/${parsedDate.year}';
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        RekomendasiView(disease: disease),
+                                  ),
+                                );
+                              },
+                              child: HistoryCard(
+                                imageUrl:
+                                    base64Decode(disease['predicted_image']),
+                                diseaseName:
+                                    indonesian[disease['disease_name']] ??
+                                        'Nama latin tidak tersedia',
+                                diseaseType:
+                                    latinNames[disease['disease_name']] ??
+                                        'Nama latin tidak tersedia',
+                                detectedDate:
+                                    'Tanggal Deteksi ${formattedDate}',
+                              ),
+                            );
+                          },
+                        ),
+            ),
           ],
         ),
       ),
@@ -79,7 +153,7 @@ class RiwayatDeteksiView extends StatelessWidget {
 }
 
 class HistoryCard extends StatelessWidget {
-  final String imageUrl;
+  final Uint8List imageUrl;
   final String diseaseName;
   final String diseaseType;
   final String detectedDate;
@@ -107,7 +181,7 @@ class HistoryCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12.0),
-              child: Image.asset(
+              child: Image.memory(
                 imageUrl,
                 height: 150,
                 width: double.infinity,
@@ -129,8 +203,7 @@ class HistoryCard extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.end, // Aligns the date to the right
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
                   detectedDate,

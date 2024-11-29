@@ -1,26 +1,29 @@
-// ignore_for_file: prefer_const_constructors, prefer_final_fields, unused_field, no_leading_underscores_for_local_identifiers, unused_element, avoid_print, use_super_parameters, prefer_const_constructors_in_immutables, library_private_types_in_public_api, use_build_context_synchronously, sized_box_for_whitespace, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, prefer_final_fields, unused_field, no_leading_underscores_for_local_identifiers, unused_element, avoid_print, use_super_parameters, prefer_const_constructors_in_immutables, library_private_types_in_public_api, use_build_context_synchronously, sized_box_for_whitespace, prefer_const_literals_to_create_immutables, dead_code, duplicate_ignore
 
+import 'dart:convert';
 import 'dart:ui';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:camera/camera.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:leafscan/Service/auth.dart';
 import 'package:leafscan/Views/login_view.dart';
 import 'package:leafscan/Views/rekomendasi_view.dart';
 import 'package:leafscan/Views/riwayat_deteksi_view.dart';
-import '../controllers/deteksi_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class DeteksiPenyakitView extends StatefulWidget {
-  final DeteksiController? deteksiController;
   final List<CameraDescription> cameras; // Add cameras parameter
 
-  DeteksiPenyakitView({Key? key, this.deteksiController, required this.cameras})
-      : super(key: key);
+  DeteksiPenyakitView({Key? key, required this.cameras}) : super(key: key);
 
   @override
   _DeteksiPenyakitViewState createState() => _DeteksiPenyakitViewState();
@@ -43,6 +46,13 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
   bool _isLoading = false;
   bool _isHealthy = false;
   bool _isNonLeafDetected = false;
+  User? user;
+  List<String> diseaseNames = [];
+  late Uint8List bytesPredictedImage;
+
+  Map<String, dynamic> grayDisease = {};
+  Map<String, dynamic> rustDisease = {};
+  Map<String, dynamic> blightDisease = {};
 
   Future<void> viewResultDetected(BuildContext context) async {
     showModalBottomSheet(
@@ -94,157 +104,149 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
                   ),
                 ),
               ] else ...[
-                // Display main disease information
-                Text(
-                  'Penyakit Utama',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-                // Similar diseases list
-                ListTile(
-                  leading: Transform.rotate(
-                    angle: 0,
-                    child: Container(
-                      width: 100, // width of the image
-                      height: 100, // height of the image
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                            5.0), // Rounded corners for the border
-                        border: Border.all(
-                          color: Colors.white, // Border color
-                          width: 2.0, // Border width
+                if (diseaseNames.contains('Hawar Daun')) ...[
+                  ListTile(
+                    leading: Transform.rotate(
+                      angle: 0,
+                      child: Container(
+                        width: 100, // width of the image
+                        height: 100, // height of the image
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                              5.0), // Rounded corners for the border
+                          border: Border.all(
+                            color: Colors.white, // Border color
+                            width: 2.0, // Border width
+                          ),
                         ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                            5.0), // Match the border radius
-                        child: Image.asset(
-                          'assets/images/blight.png',
-                          fit: BoxFit.cover, // fit image in the box
-                        ),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                                5.0), // Match the border radius
+                            child: Image.memory(
+                              bytesPredictedImage,
+                              fit: BoxFit.cover,
+                            )),
                       ),
                     ),
-                  ),
-                  title: Text(
-                    'Hawar Daun',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                    title: Text(
+                      'Hawar Daun',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  subtitle: Text(
-                    'Exserohilium turcicium',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RekomendasiView(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Lainnya',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-                ListTile(
-                  leading: Transform.rotate(
-                    angle: 0,
-                    child: Container(
-                      width: 100, // width of the image
-                      height: 100, // height of the image
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                            5.0), // Rounded corners for the border
-                        border: Border.all(
-                          color: Colors.white, // Border color
-                          width: 2.0, // Border width
+                    subtitle: Text(
+                      'Exserohilium turcicium',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RekomendasiView(
+                            disease: blightDisease,
+                          ),
                         ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                            5.0), // Match the border radius
-                        child: Image.asset(
-                          'assets/images/gray.png',
-                          fit: BoxFit.cover, // fit image in the box
+                      );
+                    },
+                  ),
+                ],
+                if (diseaseNames.contains('Bercak Daun')) ...[
+                  ListTile(
+                    leading: Transform.rotate(
+                      angle: 0,
+                      child: Container(
+                        width: 100, // width of the image
+                        height: 100, // height of the image
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                              5.0), // Rounded corners for the border
+                          border: Border.all(
+                            color: Colors.white, // Border color
+                            width: 2.0, // Border width
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                              5.0), // Match the border radius
+                          child: Image.memory(
+                            bytesPredictedImage,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  title: Text(
-                    'Bercak Daun',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Bipolaris maydis',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RekomendasiView(),
+                    title: Text(
+                      'Bercak Daun',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Transform.rotate(
-                    angle: 0,
-                    child: Container(
-                      width: 100, // width of the image
-                      height: 100, // height of the image
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                            5.0), // Rounded corners for the border
-                        border: Border.all(
-                          color: Colors.white, // Border color
-                          width: 2.0, // Border width
+                    ),
+                    subtitle: Text(
+                      'Bipolaris maydis',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RekomendasiView(
+                            disease: grayDisease,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+                if (diseaseNames.contains('Karat Daun')) ...[
+                  ListTile(
+                    leading: Transform.rotate(
+                      angle: 0,
+                      child: Container(
+                        width: 100, // width of the image
+                        height: 100, // height of the image
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                              5.0), // Rounded corners for the border
+                          border: Border.all(
+                            color: Colors.white, // Border color
+                            width: 2.0, // Border width
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                              5.0), // Match the border radius
+                          child: Image.memory(
+                            bytesPredictedImage,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                            5.0), // Match the border radius
-                        child: Image.asset(
-                          'assets/images/rust.png',
-                          fit: BoxFit.cover, // fit image in the box
+                    ),
+                    title: Text(
+                      'Karat Daun',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Puccinia sorghi',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RekomendasiView(
+                            disease: rustDisease,
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                  title: Text(
-                    'Karat Daun',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Puccinia sorghi',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RekomendasiView(),
-                      ),
-                    );
-                  },
-                ),
+                ],
               ],
             ],
           ),
@@ -253,31 +255,221 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
     );
   }
 
+  Future<Uint8List?> convertImageToJpegOrPng(File imageFile,
+      {bool isJpeg = true}) async {
+    // Mengonversi gambar ke format JPEG atau PNG
+    final format = isJpeg ? CompressFormat.jpeg : CompressFormat.png;
+
+    final result = await FlutterImageCompress.compressWithFile(
+      imageFile.path,
+      format: format,
+      quality: 80, // Atur kualitas sesuai kebutuhan
+    );
+    return result;
+  }
+
   // Fungsi untuk simulasi proses deteksi
   Future<void> detectImage(BuildContext context) async {
     setState(() {
       _isLoading = true; // Menampilkan loading
     });
 
+    String userUID = user?.email ?? "guest@gmail.com";
+
     // Simulasi proses deteksi (misalnya memanggil API)
-    await Future.delayed(
-        Duration(seconds: 5)); // Gantikan dengan logika deteksi yang sebenarnya
+    // Membuat request POST ke API
+    final uri = Uri.parse("http://35.198.229.84:8000/predict-image");
 
-    setState(() {
-      _isLoading = false; // Menyembunyikan loading setelah proses selesai
-      _isImageDetected = true;
-      // _isHealthy = true;
-      // _isNonLeafDetected = true;
-    });
+    print("test");
 
-    if (!_isNonLeafDetected) {
-      viewResultDetected(context);
+    // Pilih apakah mengonversi ke JPEG atau PNG
+    bool isJpeg = true; // Atur menjadi false jika ingin mengonversi ke PNG
+    Uint8List? imageBytes =
+        await convertImageToJpegOrPng(imageLeaf!, isJpeg: isJpeg);
+
+    if (imageBytes != null) {
+      print("test2");
+      // Membuat request multipart untuk mengirim gambar
+      var request = http.MultipartRequest('POST', uri)
+        ..fields['username'] = userUID // Menggunakan email sebagai UID
+        ..files.add(http.MultipartFile(
+          'image', // Sesuaikan dengan parameter API
+          Stream.fromIterable([imageBytes]),
+          imageBytes.length,
+          filename: isJpeg
+              ? 'image.jpg'
+              // ignore: dead_code
+              : 'image.png', // Tentukan nama file berdasarkan format
+          contentType:
+              isJpeg ? MediaType('image', 'jpeg') : MediaType('image', 'png'),
+        ));
+
+      try {
+        // Kirim request ke server
+        print("test3");
+        final response = await request.send();
+
+        if (response.statusCode == 200) {
+          // Berhasil mendapatkan response, misalnya dengan menggunakan stream untuk membaca response body
+          final responseData = await response.stream.bytesToString();
+
+          // Proses hasil deteksi
+          print("Hasil Deteksi: $responseData");
+
+          //simpan data
+          // Parsing JSON responseData ke dalam Map
+          final Map<String, dynamic> responseJson = jsonDecode(responseData);
+
+          print("coba coba coba $responseJson");
+          String predictedImage = responseJson['predicted-image'];
+          bytesPredictedImage = base64Decode(predictedImage);
+
+          print(responseJson['predicted-image']);
+
+          bool isCorn = responseJson['iscorn'];
+          print(isCorn);
+          String timestamp = responseJson['timestamp'];
+          print(timestamp);
+
+          // Menyimpan disease ke dalam list
+          List<Map<String, dynamic>> diseases = [];
+          Map<String, dynamic> diseaseData = responseJson['disease'];
+          print(diseaseData);
+
+          // Mapping nama penyakit lama ke nama baru
+          Map<String, String> diseaseNameMapping = {
+            "gray": "Bercak Daun",
+            "rust": "Karat Daun",
+            "blight": "Hawar Daun"
+          };
+
+          for (String key in diseaseData.keys) {
+            // Menggunakan mapping untuk mengganti nama penyakit
+            diseaseNames.add(diseaseNameMapping[key] ??
+                key); // Jika tidak ada mapping, tetap gunakan nama asli
+          }
+
+          for (String key in diseaseData.keys) {
+            diseases.add({
+              "name": key,
+              "definisi_penyakit": diseaseData[key]['Definisi'],
+              "predicted_image": base64Decode(predictedImage),
+              "diagnosa": diseaseData[key]['Diagnosa'],
+              "saran": diseaseData[key]['Saran'],
+              "timestamp": timestamp
+            });
+
+            Map<String, dynamic> diseaseEntry = {
+              "disease_name": key,
+              "definisi_penyakit": diseaseData[key]['Definisi'],
+              "predicted_image": predictedImage,
+              "diagnosa": diseaseData[key]['Diagnosa'],
+              "saran": diseaseData[key]['Saran'],
+              "timestamp": timestamp
+            };
+
+            // Menyimpan penyakit berdasarkan jenisnya
+            if (key == "gray") {
+              grayDisease = diseaseEntry;
+            } else if (key == "rust") {
+              rustDisease = diseaseEntry;
+            } else if (key == "blight") {
+              blightDisease = diseaseEntry;
+            } else {
+              print("Penyakit tidak dikenal: $key");
+            }
+          }
+
+          print(diseases);
+
+          // simpan ke firebase realtime database
+          String userEmail = user!.email!.replaceAll('.', '_');
+          final databaseReference = FirebaseDatabase.instance.ref();
+
+          // Menyimpan setiap disease ke database di bawah email user
+          for (var disease in diseases) {
+            String diseaseName = disease['name'];
+            Map<String, dynamic> diseaseDetails = {
+              'predicted_image': base64Encode(disease['predicted_image']),
+              "definisi_penyakit": disease['definisi_penyakit'],
+              'diagnosa': disease['diagnosa'],
+              'saran': disease['saran'],
+              'timestamp': disease['timestamp'],
+              'disease_name':
+                  diseaseName, // Untuk menampilkan nama penyakit di list nantinya
+            };
+
+            print("disease details");
+            print(disease['definisi_penyakit']);
+
+            // Menggunakan push() untuk membuat ID unik untuk penyakit
+            await databaseReference
+                .child('users')
+                .child(userEmail)
+                .child('diseases')
+                .push()
+                .set(diseaseDetails);
+          }
+
+          setState(() {
+            _isLoading = false;
+            _isImageDetected = true; // Mengubah status menjadi image detected
+            //disini taruh perkondisian (ada penyakit, tidak ada penyakit dan bukan daun)
+            _isNonLeafDetected = !isCorn;
+            _isHealthy = diseaseData.isEmpty;
+          });
+
+          // Tampilkan hasil deteksi (misalnya dialog atau layar baru)
+          viewResultDetected(context);
+        } else {
+          // Jika gagal menghubungi API
+          setState(() {
+            _isLoading = false;
+          });
+          // Mengambil detail error dari response body
+          final errorData = await response.stream.bytesToString();
+          print("Error Data: $errorData");
+          showErrorDialog(context, errorData);
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        print("Hasil: $e");
+        // Tangani kesalahan jika terjadi
+        showErrorDialog(context, "Terjadi kesalahan: $e");
+      }
+    } else {
+      print("Gagal mengonversi gambar.");
+      _isLoading = false;
     }
+  }
+
+  void showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Error"),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   void initState() {
     initCamera();
+    Firebase.initializeApp();
+    user = FirebaseAuth.instance.currentUser;
     super.initState();
   }
 
@@ -490,15 +682,14 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
                               ],
                             ),
                             child: ClipRRect(
-                              // Use ClipRRect for rounded corners
-                              borderRadius: BorderRadius.circular(
-                                  20.0), // Set the same radius as above
-                              child: Image.asset(
-                                'assets/images/multiple_disease.png', // Replace with the actual asset path
-                                width: 350, // Set the width of the image
-                                fit: BoxFit.contain, // Adjust the fit as needed
-                              ),
-                            ),
+                                // Use ClipRRect for rounded corners
+                                borderRadius: BorderRadius.circular(
+                                    20.0), // Set the same radius as above
+                                child: Image.memory(
+                                  bytesPredictedImage,
+                                  width: 350,
+                                  fit: BoxFit.contain,
+                                )),
                           )))
                 : (_isImageCropped && imageLeaf != null
                     ? Container(
@@ -559,18 +750,22 @@ class _DeteksiPenyakitViewState extends State<DeteksiPenyakitView> {
             ),
           ),
           // Icon untuk histori deteksi di kanan atas
-          Positioned(
-            top: 60,
-            left: 20,
-            child: IconButton(
-              icon: Icon(Icons.history, color: Colors.white, size: 30),
-              onPressed: () {
-                // Aksi untuk membuka histori deteksi
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RiwayatDeteksiView()),
-                );
-              },
+          Visibility(
+            visible: !_isImageCropped,
+            child: Positioned(
+              top: 60,
+              left: 20,
+              child: IconButton(
+                icon: Icon(Icons.history, color: Colors.white, size: 30),
+                onPressed: () {
+                  // Aksi untuk membuka histori deteksi
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => RiwayatDeteksiView()),
+                  );
+                },
+              ),
             ),
           ),
           // Icon for logout on the top right
