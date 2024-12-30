@@ -1,10 +1,11 @@
-from flask import Flask
+from fastapi import FastAPI, Request
+from .routes import main
+from prometheus_client import generate_latest, Histogram
+import time
 
 def create_app():
-    app = Flask(__name__)
+    app = FastAPI()
 
-    from .routes import main
-
-    app.register_blueprint(main)
+    app.include_router(main)
 
     return app
